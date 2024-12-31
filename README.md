@@ -34,6 +34,8 @@ This project demonstrates how to activate flows in Microsoft Power Platform's Da
 
 When you run the application, it will prompt you to list inactive flows, activate them, or exit. Follow the on-screen instructions to manage your flows.
 
+![Demo](demo.gif)
+
 ## Key Files
 
 - **[Program.cs](ActivateFlows/Program.cs)**: Contains the main logic for listing and activating flows.
