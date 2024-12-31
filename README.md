@@ -1,31 +1,45 @@
-# Working with Dataverse solutions
+# ActivateFlows
 
-This sample demonstrates using the Dataverse solution APIs to work with solutions.
+This project demonstrates how to activate flows in Microsoft Power Platform's Dataverse using the Dataverse Client.
 
-The provided code samples are listed below.
+## Prerequisites
 
-|Sample folder|Description|Build target|
-|---|---|---|
-|SolutionAttributeExport|Demonstrates connecting to the Organization service, creating an unmanaged solution, finding specific attributes and adding them to the solution, then exporting the managed version of the solution.|.NET 6|
+- [.NET 6 SDK](https://dotnet.microsoft.com/download/dotnet/6.0)
+- [Visual Studio 2022](https://visualstudio.microsoft.com/vs/)
 
-## Instructions
+## Setup
 
-1. Clone the [PowerApps-Samples](https://github.com/microsoft/PowerApps-Samples) repository.
+1. Clone the repository:
 
-1. Open the *Solutions.sln* solution file in Visual Studio 2022 located under dataverse/orgsvc/CSharp-NETCore/Solutions/SolutionAttributeExport/.
+2. Open the solution in Visual Studio:
+    ```sh
+    .\ActivateFlows.sln
+    ```
 
-1. Edit the *appsettings.json* file in the **Solution Items** folder of Solution Explorer. Set the connection string `Url` and `Username` parameters as appropriate for your test environment.
+3. Configure the `appsettings.json` file with your Dataverse connection details:
+    ```json
+    {
+      "ConnectionStrings": {
+        "default": "AuthType=OAuth;Url=https://yourorg.crm.dynamics.com;RedirectUri=http://localhost;AppId=51f81489-12ee-4a9e-aaae-a2591f45987d;LoginPrompt=Auto"
+      }
+    }
+    ```
 
- The environment Url can be found in the Power Platform admin center. It has the form https://\<environment-name>.crm.dynamics.com.
+## Build and Run
 
-1. Build the solution, and then run the desired project.
+1. Build the solution
+2. Run or debug the application:
+    
+## Usage
 
-When the sample runs, you will be prompted in the default browser to select an environment user account and enter a password. To avoid having to do this every time you run a sample, insert a password parameter into the connection string in the appsettings.json file. For example:
+When you run the application, it will prompt you to list inactive flows, activate them, or exit. Follow the on-screen instructions to manage your flows.
 
-```json
-{
-"ConnectionStrings": {
-    "default": "AuthType=OAuth;Url=https://myorg.crm.dynamics.com;Username=someone@myorg.onmicrosoft.com;Password=mypassword;RedirectUri=http://localhost;AppId=51f81489-12ee-4a9e-aaae-a2591f45987d;LoginPrompt=Auto"
-  }
-}
-```
+## Key Files
+
+- **[Program.cs](ActivateFlows/Program.cs)**: Contains the main logic for listing and activating flows.
+- **[appsettings.json](appsettings.json)**: Configuration file for connection strings (must exist in the active bin).
+
+## Dependencies
+
+- `Microsoft.Extensions.Configuration.Json`
+- `Microsoft.PowerPlatform.Dataverse.Client`
