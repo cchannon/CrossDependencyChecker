@@ -56,8 +56,27 @@ namespace PowerPlatform.Dataverse.CodeSamples
             return serviceClient;
         }
 
+        private Guid getSYSTEM(ServiceClient serviceClient)
+        {
+            var query = new QueryExpression("systemuser")
+            {
+                ColumnSet = new ColumnSet(false),
+                Criteria = new FilterExpression(LogicalOperator.And)
+                {
+                    Conditions =
+                    {
+                        new ConditionExpression("fullname",
+                        ConditionOperator.Equal,
+                        "SYSTEM")
+                    }
+                }
+            };
+            return serviceClient.RetrieveMultiple(query)?.Entities?.FirstOrDefault()?.Id ?? new Guid();
+        }
+
         private void ListFlows(ServiceClient serviceClient)
         {
+            var System = getSYSTEM(serviceClient);
             var query = new QueryExpression("workflow")
             {
                 ColumnSet = new ColumnSet(
@@ -69,7 +88,8 @@ namespace PowerPlatform.Dataverse.CodeSamples
                                     "name",
                                     "ownerid",
                                     "workflowid",
-                                    "workflowidunique"),
+                                    "workflowidunique",
+                                    "ismanaged"),
                 Criteria = new FilterExpression(LogicalOperator.And)
                 {
                     Conditions = {
@@ -82,6 +102,11 @@ namespace PowerPlatform.Dataverse.CodeSamples
                                  "statecode",
                                  ConditionOperator.Equal,
                                  0 // Off
+                        )},
+                        { new ConditionExpression(
+                            "createdby",
+                            ConditionOperator.NotEqual,
+                            System
                         )}
                     }
                 }
@@ -118,20 +143,30 @@ namespace PowerPlatform.Dataverse.CodeSamples
         {
             int successCount = 0;
             List<Entity> failedFlows = new List<Entity>();
+            List<string> exclusions = new List<string>()
+            {
+                "",
+                "",
+                ""
+            };
+            
 
             workflows.ForEach(flow =>
             {
-                try
+                if(!exclusions.Any(id => id == flow.Id.ToString()))
                 {
-                    Console.WriteLine($"Activating flow: {flow["name"]}");
-                    flow["statecode"] = 1; // Active
-                    serviceClient.Update(flow);
-                    successCount++;
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine($"Failed to activate flow: {flow["name"]}. Error: {ex.Message}");
-                    failedFlows.Add(flow);
+                    try
+                    {
+                        Console.WriteLine($"Activating flow: {flow["name"]}");
+                        flow["statecode"] = 1; // Active
+                        serviceClient.Update(flow);
+                        successCount++;
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"Failed to activate flow: {flow["name"]}. Error: {ex.Message}");
+                        failedFlows.Add(flow);
+                    }
                 }
             });
 
