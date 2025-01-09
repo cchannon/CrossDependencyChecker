@@ -145,15 +145,13 @@ namespace PowerPlatform.Dataverse.CodeSamples
             List<Entity> failedFlows = new List<Entity>();
             List<string> exclusions = new List<string>()
             {
-                "",
-                "",
-                ""
+
             };
             
 
             workflows.ForEach(flow =>
             {
-                if(!exclusions.Any(id => id == flow.Id.ToString()))
+                if(!exclusions.Any(id => id == flow["workflowidunique"].ToString()))
                 {
                     try
                     {
