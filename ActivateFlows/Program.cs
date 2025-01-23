@@ -22,7 +22,7 @@ namespace PowerPlatform.Dataverse.CodeSamples
             var connectionString = app.Configuration.GetConnectionString("default");
 
             ServiceClient serviceClient = app.CreateServiceClient(connectionString);
-            app.ListFlows(serviceClient);
+            app.PromptUserForInitialAction(serviceClient);
         }
 
         /// <summary>
@@ -56,7 +56,25 @@ namespace PowerPlatform.Dataverse.CodeSamples
             return serviceClient;
         }
 
-        private void ListFlows(ServiceClient serviceClient)
+        private Guid getSYSTEM(ServiceClient serviceClient)
+        {
+            var query = new QueryExpression("systemuser")
+            {
+                ColumnSet = new ColumnSet(false),
+                Criteria = new FilterExpression(LogicalOperator.And)
+                {
+                    Conditions =
+                    {
+                        new ConditionExpression("fullname",
+                        ConditionOperator.Equal,
+                        "SYSTEM")
+                    }
+                }
+            };
+            return serviceClient.RetrieveMultiple(query)?.Entities?.FirstOrDefault()?.Id ?? new Guid();
+        }
+
+        private void ListClassicFlows(ServiceClient serviceClient)
         {
             var query = new QueryExpression("workflow")
             {
@@ -76,12 +94,98 @@ namespace PowerPlatform.Dataverse.CodeSamples
                         {  new ConditionExpression(
                            "category",
                                  ConditionOperator.Equal,
-                                 5 // Cloud Flow
+                                 0 // Classic Workflow
                         )},
                         {  new ConditionExpression(
                                  "statecode",
                                  ConditionOperator.Equal,
                                  0 // Off
+                        )}
+                    }
+                }
+            };
+
+            EntityCollection workflows = serviceClient.RetrieveMultiple(query);
+
+            Console.WriteLine($"Total Inactive Workflows Found: {workflows.Entities.Count}");
+
+            if (workflows.Entities.Count > 0)
+            {
+                PromptUserForAction(workflows.Entities.ToList(), serviceClient);
+            }
+        }
+
+        private void ListBusinessRules(ServiceClient serviceClient)
+        {
+            var query = new QueryExpression("businessrule")
+            {
+                ColumnSet = new ColumnSet(
+                                    "createdby",
+                                    "createdon",
+                                    "description",
+                                    "modifiedby",
+                                    "modifiedon",
+                                    "name",
+                                    "ownerid",
+                                    "businessruleid",
+                                    "businessruleidunique"),
+                Criteria = new FilterExpression(LogicalOperator.And)
+                {
+                    Conditions = {
+                        {  new ConditionExpression(
+                           "statecode",
+                                 ConditionOperator.Equal,
+                                 0 // Off
+                        )},
+                        { new ConditionExpression(
+                            "category",
+                            ConditionOperator.Equal,
+                            2 // Business Rule
+                        )}
+                    }
+                }
+            };
+
+            EntityCollection workflows = serviceClient.RetrieveMultiple(query);
+            Console.WriteLine($"Total Inactive Business Rules Found: {workflows.Entities.Count}");
+            if (workflows.Entities.Count > 0)
+            {
+                PromptUserForAction(workflows.Entities.ToList(), serviceClient);
+            }
+        }
+
+        private void ListFlows(ServiceClient serviceClient)
+        {
+            var System = getSYSTEM(serviceClient);
+            var query = new QueryExpression("workflow")
+            {
+                ColumnSet = new ColumnSet(
+                                    "createdby",
+                                    "createdon",
+                                    "description",
+                                    "modifiedby",
+                                    "modifiedon",
+                                    "name",
+                                    "ownerid",
+                                    "workflowid",
+                                    "workflowidunique"),
+                Criteria = new FilterExpression(LogicalOperator.And)
+                {
+                    Conditions = {
+                        { new ConditionExpression(
+                           "category",
+                                 ConditionOperator.Equal,
+                                 5 // Modern Flow
+                        )},
+                        { new ConditionExpression(
+                                 "statecode",
+                                 ConditionOperator.Equal,
+                                 0 // Off
+                        )},
+                        { new ConditionExpression(
+                            "createdby",
+                            ConditionOperator.NotEqual,
+                            System
                         )}
                     }
                 }
@@ -125,6 +229,7 @@ namespace PowerPlatform.Dataverse.CodeSamples
                 {
                     Console.WriteLine($"Activating flow: {flow["name"]}");
                     flow["statecode"] = 1; // Active
+                    flow["statuscode"] = 2; // Activated
                     serviceClient.Update(flow);
                     successCount++;
                 }
@@ -143,19 +248,57 @@ namespace PowerPlatform.Dataverse.CodeSamples
             else
             {
                 Console.WriteLine("All flows activated successfully.");
+                PromptUserForAction(failedFlows, serviceClient);
+            }
+        }
+
+        private void PromptUserForInitialAction(ServiceClient serviceClient)
+        {
+            Console.WriteLine("----------------------");
+            Console.WriteLine("Do you want to list the inactive (f)lows, list the inactive (c)lassic workflows, list the inactive (b)usiness rules, or (e)xit?");
+            string? userInput = Console.ReadLine();
+
+            if (userInput?.ToLower() == "f")
+            {
+                ListFlows(serviceClient);
+            }
+            else if (userInput?.ToLower() == "c")
+            {
+                ListClassicFlows(serviceClient);
+            }
+            else if (userInput?.ToLower() == "b")
+            {
+                ListBusinessRules(serviceClient);
+            }
+            else if (userInput?.ToLower() == "e")
+            {
+                Console.WriteLine("Exiting...");
+            }
+            else
+            {
+                Console.WriteLine("Invalid input. Please enter 'f' to list flows, 'c' to list classic workflows, 'b' to list business rules, or 'e' to exit.");
+                PromptUserForInitialAction(serviceClient);
             }
         }
 
         private void PromptUserForAction(List<Entity> failedFlows, ServiceClient serviceClient)
         {
             Console.WriteLine("----------------------");
-            Console.WriteLine("Do you want to (l)ist the inactive flows, (a)ctivate them, or (e)xit?");
+            Console.WriteLine("Do you want to (a)ctivate these, list the inactive (f)lows, list the inactive (c)lassic workflows, list the inactive (b)usiness rules, or (e)xit?");
             string? userInput = Console.ReadLine();
 
-            if (userInput?.ToLower() == "l")
+            if (userInput?.ToLower() == "f")
             {
                 printFlows(failedFlows);
                 PromptUserForAction(failedFlows, serviceClient);
+            }
+            else if (userInput?.ToLower() == "c")
+            {
+                ListClassicFlows(serviceClient);
+            }
+            else if (userInput?.ToLower() == "b")
+            {
+                ListBusinessRules(serviceClient);
             }
             else if (userInput?.ToLower() == "a")
             {
