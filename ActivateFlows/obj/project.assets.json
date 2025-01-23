@@ -6024,23 +6024,23 @@
     ]
   },
   "packageFolders": {
-    "C:\\Users\\CharlesChannon\\.nuget\\packages\\": {},
+    "C:\\Users\\N8296F\\.nuget\\packages\\": {},
     "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages": {}
   },
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\CharlesChannon\\Source\\Repos\\FlowManagement\\ActivateFlows\\ActivateFlows.csproj",
+      "projectUniqueName": "C:\\Users\\N8296F\\source\\repos\\FlowManagement\\ActivateFlows\\ActivateFlows.csproj",
       "projectName": "ActivateFlows",
-      "projectPath": "C:\\Users\\CharlesChannon\\Source\\Repos\\FlowManagement\\ActivateFlows\\ActivateFlows.csproj",
-      "packagesPath": "C:\\Users\\CharlesChannon\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\CharlesChannon\\Source\\Repos\\FlowManagement\\ActivateFlows\\obj\\",
+      "projectPath": "C:\\Users\\N8296F\\source\\repos\\FlowManagement\\ActivateFlows\\ActivateFlows.csproj",
+      "packagesPath": "C:\\Users\\N8296F\\.nuget\\packages\\",
+      "outputPath": "C:\\Users\\N8296F\\source\\repos\\FlowManagement\\ActivateFlows\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
       ],
       "configFilePaths": [
-        "C:\\Users\\CharlesChannon\\AppData\\Roaming\\NuGet\\NuGet.Config",
+        "C:\\Users\\N8296F\\AppData\\Roaming\\NuGet\\NuGet.Config",
         "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
         "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
       ],
@@ -6066,8 +6066,7 @@
         "enableAudit": "true",
         "auditLevel": "low",
         "auditMode": "direct"
-      },
-      "SdkAnalysisLevel": "9.0.100"
+      }
     },
     "frameworks": {
       "net6.0": {
@@ -6098,7 +6097,7 @@
             "privateAssets": "all"
           }
         },
-        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.101\\RuntimeIdentifierGraph.json"
+        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\8.0.403\\RuntimeIdentifierGraph.json"
       }
     }
   }
