@@ -219,6 +219,26 @@ namespace PowerPlatform.Dataverse.CodeSamples
                 Console.WriteLine($"workflowid: {flow["workflowid"]}");
                 Console.WriteLine($"workflowidunique: {flow["workflowidunique"]}");
             });
+
+            Console.WriteLine("Save the results to a CSV file? (y/n)");
+            string response = Console.ReadLine()?.Trim().ToLower() ?? string.Empty;
+
+            if (response == "y")
+            {
+                string filePath = Path.Combine(Directory.GetCurrentDirectory(), "results.csv");
+
+                using (StreamWriter writer = new StreamWriter(filePath))
+                {
+                    writer.WriteLine("name,createdby,createdon,description,modifiedby,modifiedon,ownerid,workflowid,workflowidunique");
+
+                    workflows.ForEach(flow =>
+                    {
+                        writer.WriteLine($"{flow["name"]},{flow.FormattedValues["createdby"]},{flow.FormattedValues["createdon"]},{flow.GetAttributeValue<string>("description")},{flow.FormattedValues["modifiedby"]},{flow.FormattedValues["modifiedon"]},{flow.FormattedValues["ownerid"]},{flow["workflowid"]},{flow["workflowidunique"]}");
+                    });
+                }
+
+                Console.WriteLine($"Results saved to {filePath}");
+            }
         }
 
         private void ActivateFlows(List<Entity> workflows, ServiceClient serviceClient)
