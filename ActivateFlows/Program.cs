@@ -111,13 +111,14 @@ namespace PowerPlatform.Dataverse.CodeSamples
 
             if (workflows.Entities.Count > 0)
             {
+                printFlows(workflows.Entities.ToList());
                 PromptUserForAction(workflows.Entities.ToList(), serviceClient);
             }
         }
 
         private void ListBusinessRules(ServiceClient serviceClient)
         {
-            var query = new QueryExpression("businessrule")
+            var query = new QueryExpression("workflow")
             {
                 ColumnSet = new ColumnSet(
                                     "createdby",
@@ -127,8 +128,8 @@ namespace PowerPlatform.Dataverse.CodeSamples
                                     "modifiedon",
                                     "name",
                                     "ownerid",
-                                    "businessruleid",
-                                    "businessruleidunique"),
+                                    "workflowid",
+                                    "workflowidunique"),
                 Criteria = new FilterExpression(LogicalOperator.And)
                 {
                     Conditions = {
@@ -150,6 +151,7 @@ namespace PowerPlatform.Dataverse.CodeSamples
             Console.WriteLine($"Total Inactive Business Rules Found: {workflows.Entities.Count}");
             if (workflows.Entities.Count > 0)
             {
+                printFlows(workflows.Entities.ToList());
                 PromptUserForAction(workflows.Entities.ToList(), serviceClient);
             }
         }
@@ -197,6 +199,7 @@ namespace PowerPlatform.Dataverse.CodeSamples
 
             if (workflows.Entities.Count > 0)
             {
+                printFlows(workflows.Entities.ToList());
                 PromptUserForAction(workflows.Entities.ToList(), serviceClient);
             }
         }
