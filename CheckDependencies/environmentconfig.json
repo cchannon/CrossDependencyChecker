@@ -1,0 +1,13 @@
+{
+  "Environments": [
+    {
+      "url": "https://gbds-dev-opphub.crm.microsoftdynamics.us",
+      "solutions": [
+        {
+          "name": "OppHubSeg",
+          "id": "67b89d95-0a48-48a4-a847-b913505472fb"
+        }
+      ]
+    }
+  ]
+}
