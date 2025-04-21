@@ -1,13 +1,19 @@
-{
-  "Environments": [
-    {
-      "url": "https://gbds-dev-opphub.crm.microsoftdynamics.us",
-      "solutions": [
-        {
-          "name": "OppHubSeg",
-          "id": "67b89d95-0a48-48a4-a847-b913505472fb"
-        }
-      ]
-    }
-  ]
-}
+[
+  {
+    "url": "https://orgdf4c7c8f.crm.dynamics.com/",
+    "solutions": [
+      {
+        "name": "Active",
+        "id": "fd140aae-4df4-11dd-bd17-0019b9312238"
+      },
+      {
+        "name":"DependentSolution",
+        "id": "c21b65c5-d31d-f011-998a-00224809118c"
+      },
+      {
+        "name":"RequiredSolution",
+        "id": "d2e1ebf6-d41d-f011-998a-00224809537d"
+      }
+    ]
+  }
+]
