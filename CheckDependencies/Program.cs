@@ -66,24 +66,6 @@ namespace PowerPlatform.Dataverse.CodeSamples
             }
 
 
-
-            // Retrieve the list of solutions for building config document
-
-            // QueryExpression query = new QueryExpression("solution");
-            // query.ColumnSet.AddColumns("uniquename", "solutionid");
-
-            // var result = serviceClient.RetrieveMultiple(query);
-            // List<Solution> solutions;
-            // if (result == null || result.Entities.Count == 0)
-            // {
-            //     Console.WriteLine("no solutions!");
-            //     return;
-            // }
-
-            // solutions = result.Entities.ToList().Select(e => new Solution(e.GetAttributeValue<string>("uniquename"), e.Id.ToString())).ToList();
-
-
-
             // Retrieve the component types for friendly display of required object type codes
             var query = new QueryExpression("stringmap");
             query.ColumnSet.AddColumns("value", "attributevalue");
@@ -96,7 +78,6 @@ namespace PowerPlatform.Dataverse.CodeSamples
                 return;
             }
             var componentTypes = result.Entities.ToList().Select(e => new ComponentType(e.GetAttributeValue<string>("value"), e.GetAttributeValue<int>("attributevalue"))).ToList();
-
 
 
             //Gather Missing Dependencies and construct Solution objects
@@ -117,19 +98,22 @@ namespace PowerPlatform.Dataverse.CodeSamples
                 {
                     response.Results.Values.ToList().ForEach(dep =>
                     {
-                        if (dep is EntityCollection collection)
+                        if (dep != null && dep is EntityCollection collection)
                         {
-                            foreach (var entity in collection.Entities)
+                            if(collection.Entities.Count > 0)
                             {
-                                if (entity.GetAttributeValue<Guid>("requiredcomponentbasesolutionid").ToString() == targetEnvironment.Solutions!.ToList().Find(s => s.Name == "Active")!.Id)
+                                foreach (var entity in collection.Entities)
                                 {
-                                    var dependentObjectId = entity.GetAttributeValue<Guid>("dependentcomponentobjectid").ToString();
-                                    var dependentObjectType = entity.GetAttributeValue<OptionSetValue>("dependentcomponenttype").Value;
-                                    var requiredObjectId = entity.GetAttributeValue<Guid>("requiredcomponentobjectid").ToString();
-                                    var requiredObjectType = entity.GetAttributeValue<OptionSetValue>("requiredcomponenttype").Value;
-                                    var dependency = new Dependency(dependentObjectId, dependentObjectType, requiredObjectId, requiredObjectType);
+                                    if (entity.GetAttributeValue<Guid>("requiredcomponentbasesolutionid").ToString() == targetEnvironment.Solutions!.ToList().Find(s => s.Name == "Active")!.Id)
+                                    {
+                                        var dependentObjectId = entity.GetAttributeValue<Guid>("dependentcomponentobjectid").ToString();
+                                        var dependentObjectType = entity.GetAttributeValue<OptionSetValue>("dependentcomponenttype").Value;
+                                        var requiredObjectId = entity.GetAttributeValue<Guid>("requiredcomponentobjectid").ToString();
+                                        var requiredObjectType = entity.GetAttributeValue<OptionSetValue>("requiredcomponenttype").Value;
+                                        var dependency = new Dependency(dependentObjectId, dependentObjectType, requiredObjectId, requiredObjectType);
 
-                                    sol.MissingDependencies.Add(dependency);
+                                        sol.MissingDependencies.Add(dependency);
+                                    }
                                 }
                             }
                         }
@@ -162,16 +146,9 @@ namespace PowerPlatform.Dataverse.CodeSamples
                     }
 
                     var component = new Component(
-                        re.Id.ToString(),
+                        re.GetAttributeValue<Guid>("objectid").ToString(),
                         new ComponentType(componentType.Name, componentType.Id)
                     );
-
-                    targetEnvironment.Solutions!.ToList().ForEach(sol =>
-                    {
-                        sol.MissingDependencies.Find(md => 
-                            md.DependentObjectId == component.Id
-                        )?.RequiredObjectFoundIn.Add(sol.Name);
-                    });
 
                     return component;
                 })
@@ -179,8 +156,35 @@ namespace PowerPlatform.Dataverse.CodeSamples
                 .ToList();
             });
 
+            targetEnvironment.Solutions!.Where(s => s.Name != "Active").ToList().ForEach(s => 
+            {
+                if(s.MissingDependencies == null || s.MissingDependencies.Count == 0)
+                {
+                    return;
+                }
+                s.MissingDependencies.ForEach(md => 
+                {
+                    targetEnvironment.Solutions!.ToList()
+                        .Where(sol => 
+                            sol.Id != s.Id
+                            && sol.Components != null
+                        ).ToList().ForEach(sol => 
+                        {
+                            if(!md.RequiredObjectFoundIn.Contains(sol.Name)
+                            && sol.Components!.Find(com => 
+                                com != null 
+                                && com.Id == md.RequiredObjectId) != null
+                            )
+                            {
+                                md.RequiredObjectFoundIn.Add(sol.Name);
+                            }
+                        });
+                });
+            });
+
             // issue a report on the missing dependencies. The report will highlight the dependency relationships between solutions, and will alert the user to any situation where one solution has a dependency on another solution that is likewise dependent on the first solution. This is a circular dependency, and should be avoided.
 
+            LogFullDependency();
             Console.WriteLine("Missing Dependencies Report:");
             Console.WriteLine("===================================");
             Console.WriteLine($"Target Environment: {targetEnvironment.Url}");
@@ -215,8 +219,6 @@ namespace PowerPlatform.Dataverse.CodeSamples
                                     Console.WriteLine("*****");
                                     Console.WriteLine($"ERROR: Circular dependency detected! {solution.Name} depends on {dependentSolutionName}, and {dependentSolutionName} depends on {solution.Name}.");
                                     Console.WriteLine("*****");
-
-                                    LogCircularDependency(solution.Name, dependentSolutionName);
                                 }
                             }
                         }
@@ -233,19 +235,16 @@ namespace PowerPlatform.Dataverse.CodeSamples
             }
             Console.WriteLine("===================================");
             Console.WriteLine("Press any key to continue...");
-            Console.ReadKey();
+            Console.Read();
         }
 
-        public void LogCircularDependency(string solutionName, string dependentSolutionName)
+        public void LogFullDependency()
         {
             // Log the circular dependency to a file or database
-            string logFilePath = Path.Combine(AppContext.BaseDirectory, "circular_dependencies.log");
+            string logFilePath = Path.Combine(AppContext.BaseDirectory, "solution_dependencies.log");
             using (StreamWriter writer = new StreamWriter(logFilePath, true))
-            {
-                writer.WriteLine($"Circular dependency detected: {solutionName} <-> {dependentSolutionName} at {DateTime.Now}");
-                
+            {   
                 writer.WriteLine("===================================");
-
                 //Log out a serialized version of the targetEnvironment object, omitting the components
                 // to avoid cluttering the log file with too much data.
                 targetEnvironment!.Solutions?.ToList().ForEach(s =>
@@ -255,7 +254,6 @@ namespace PowerPlatform.Dataverse.CodeSamples
                 string serializedTargetEnvironment = JsonSerializer.Serialize(targetEnvironment, new JsonSerializerOptions { WriteIndented = true });
                 writer.WriteLine(serializedTargetEnvironment);
                 writer.WriteLine("===================================");
-                writer.WriteLine("Press any key to continue...");
             }
         }
     }
